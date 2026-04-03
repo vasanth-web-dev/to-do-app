@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>To-Do App</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- React via CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    /* ---- reset & base ---- */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Nunito", sans-serif;
+      background: #f4f6fb;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 40px 16px 60px;
+      color: #1e2235;
+    }
+
+    /* ---- app wrapper ---- */
+    .app {
+      width: 100%;
+      max-width: 480px;
+    }
+
+    /* ---- heading ---- */
+    .app-title {
+      font-size: 1.9rem;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 20px;
+      letter-spacing: -0.03em;
+    }
+
+    .app-title span {
+      color: #4f7ef8;
+    }
+
+    /* ---- progress box ---- */
+    .progress-box {
+      background: #fff;
+      border: 1px solid #e4e8f0;
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 16px;
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #555;
+    }
+
+    .progress-count {
+      font-weight: 700;
+      color: #4f7ef8;
+    }
+
+    .progress-bar {
+      height: 7px;
+      background: #eef0f6;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: #4f7ef8;
+      border-radius: 10px;
+      transition: width 0.4s ease;
+    }
+
+    /* ---- input area ---- */
+    .input-area {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .task-input {
+      flex: 1;
+      padding: 11px 14px;
+      border: 1.5px solid #d9dff0;
+      border-radius: 8px;
+      font-size: 0.93rem;
+      font-family: "Nunito", sans-serif;
+      background: #fff;
+      outline: none;
+      color: #1e2235;
+      transition: border-color 0.2s;
+    }
+
+    .task-input:focus {
+      border-color: #4f7ef8;
+    }
+
+    .task-input::placeholder {
+      color: #aab0c5;
+    }
+
+    .btn-primary {
+      padding: 11px 18px;
+      background: #4f7ef8;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      font-family: "Nunito", sans-serif;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    .btn-primary:hover {
+      background: #3b67e0;
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    /* ---- error message ---- */
+    .error-msg {
+      font-size: 0.8rem;
+      color: #e84c6a;
+      margin-bottom: 10px;
+      padding-left: 2px;
+    }
+
+    /* ---- filter + clear row ---- */
+    .filter-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .filters {
+      display: flex;
+      gap: 6px;
+    }
+
+    .filter-btn {
+      padding: 5px 13px;
+      border: 1.5px solid #d9dff0;
+      border-radius: 20px;
+      background: transparent;
+      font-size: 0.8rem;
+      font-weight: 600;
+      font-family: "Nunito", sans-serif;
+      color: #7a83a6;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+
+    .filter-btn:hover {
+      border-color: #4f7ef8;
+      color: #4f7ef8;
+    }
+
+    .filter-btn.active {
+      background: #4f7ef8;
+      border-color: #4f7ef8;
+      color: #fff;
+    }
+
+    .btn-clear {
+      font-size: 0.78rem;
+      font-weight: 700;
+      font-family: "Nunito", sans-serif;
+      color: #e84c6a;
+      background: transparent;
+      border: 1.5px solid #e84c6a;
+      border-radius: 20px;
+      padding: 5px 12px;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+
+    .btn-clear:hover {
+      background: #e84c6a;
+      color: #fff;
+    }
+
+    /* ---- task card ---- */
+    .task-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fff;
+      border: 1.5px solid #e4e8f0;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      gap: 10px;
+      animation: slideIn 0.22s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .task-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 0; /* stops text overflow issues */
+    }
+
+    /* custom checkbox */
+    .task-checkbox {
+      width: 18px;
+      height: 18px;
+      accent-color: #4f7ef8;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .task-text {
+      font-size: 0.92rem;
+      color: #1e2235;
+      word-break: break-word;
+    }
+
+    .task-text.done {
+      text-decoration: line-through;
+      color: #b0b7d0;
+    }
+
+    /* edit input shown inline */
+    .edit-input {
+      flex: 1;
+      border: 1.5px solid #4f7ef8;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 0.92rem;
+      font-family: "Nunito", sans-serif;
+      outline: none;
+    }
+
+    .task-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .btn-icon {
+      background: transparent;
+      border: 1.5px solid #e4e8f0;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+
+    .btn-icon:hover {
+      background: #f4f6fb;
+      border-color: #b0b7d0;
+    }
+
+    /* ---- empty state ---- */
+    .empty-msg {
+      text-align: center;
+      padding: 28px 0;
+      font-size: 0.88rem;
+      color: #b0b7d0;
+    }
+
+    /* ---- footer ---- */
+    .app-footer {
+      text-align: center;
+      margin-top: 28px;
+      font-size: 0.75rem;
+      color: #b0b7d0;
+    }
+
+    /* ---- mobile ---- */
+    @media (max-width: 460px) {
+      body {
+        padding: 24px 12px 50px;
+      }
+
+      .app-title {
+        font-size: 1.5rem;
+      }
+
+      .input-area {
+        flex-direction: column;
+      }
+
+      .btn-primary {
+        width: 100%;
+      }
+
+      .filter-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script type="text/babel">
+
+const { useState, useEffect } = React;
+
+// ---- load from localStorage ----
+function getSavedTasks() {
+  const data = localStorage.getItem("todos");
+  return data ? JSON.parse(data) : [];
+}
+
+// ---- TaskCard component ----
+// shows a single task with edit, delete, and checkbox
+function TaskCard({ task, onToggle, onDelete, onSaveEdit }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editText, setEditText] = useState(task.text);
+
+  function handleSave() {
+    const trimmed = editText.trim();
+    if (!trimmed) return; // don't save empty text
+    onSaveEdit(task.id, trimmed);
+    setIsEditing(false);
+  }
+
+  // save on Enter key press
+  function handleEditKeyDown(e) {
+    if (e.key === "Enter") handleSave();
+    if (e.key === "Escape") setIsEditing(false);
+  }
+
+  return (
+    <div className="task-card">
+      <div className="task-left">
+        <input
+          type="checkbox"
+          className="task-checkbox"
+          checked={task.done}
+          onChange={() => onToggle(task.id)}
+        />
+
+        {/* show input box if editing, else show text */}
+        {isEditing ? (
+          <input
+            className="edit-input"
+            value={editText}
+            onChange={(e) => setEditText(e.target.value)}
+            onKeyDown={handleEditKeyDown}
+            autoFocus
+          />
+        ) : (
+          <span className={task.done ? "task-text done" : "task-text"}>
+            {task.text}
+          </span>
+        )}
+      </div>
+
+      <div className="task-actions">
+        {isEditing ? (
+          <button className="btn-icon" onClick={handleSave} title="Save">✓</button>
+        ) : (
+          <button className="btn-icon" onClick={() => setIsEditing(true)} title="Edit">✏️</button>
+        )}
+        <button className="btn-icon" onClick={() => onDelete(task.id)} title="Delete">🗑️</button>
+      </div>
+    </div>
+  );
+}
+
+// ---- main App component ----
+function App() {
+  const [tasks, setTasks] = useState(getSavedTasks);
+  const [inputVal, setInputVal] = useState("");
+  const [filter, setFilter] = useState("all");
+  const [errMsg, setErrMsg] = useState("");
+
+  // save to localStorage whenever tasks change
+  useEffect(() => {
+    localStorage.setItem("todos", JSON.stringify(tasks));
+  }, [tasks]);
+
+  // add a new task
+  function handleAdd() {
+    const text = inputVal.trim();
+    if (!text) {
+      setErrMsg("Please type something first.");
+      return;
+    }
+    const newTask = { id: Date.now(), text: text, done: false };
+    setTasks([newTask, ...tasks]);
+    setInputVal("");
+    setErrMsg("");
+  }
+
+  // press Enter to add
+  function handleKeyDown(e) {
+    if (e.key === "Enter") handleAdd();
+  }
+
+  // toggle done/undone
+  function handleToggle(id) {
+    setTasks(tasks.map(t => t.id === id ? { ...t, done: !t.done } : t));
+  }
+
+  // delete one task
+  function handleDelete(id) {
+    setTasks(tasks.filter(t => t.id !== id));
+  }
+
+  // save edited text
+  function handleSaveEdit(id, newText) {
+    setTasks(tasks.map(t => t.id === id ? { ...t, text: newText } : t));
+  }
+
+  // clear all tasks
+  function handleClearAll() {
+    if (window.confirm("Clear all tasks?")) setTasks([]);
+  }
+
+  // filter logic
+  let filteredTasks = tasks;
+  if (filter === "active")    filteredTasks = tasks.filter(t => !t.done);
+  if (filter === "completed") filteredTasks = tasks.filter(t => t.done);
+
+  // progress stats
+  const totalCount = tasks.length;
+  const doneCount  = tasks.filter(t => t.done).length;
+  const percent    = totalCount === 0 ? 0 : Math.round((doneCount / totalCount) * 100);
+
+  return (
+    <div className="app">
+
+      <h1 className="app-title">My <span>To-Do</span></h1>
+
+      {/* progress section */}
+      <div className="progress-box">
+        <div className="progress-header">
+          <span>Progress</span>
+          <span className="progress-count">{doneCount} / {totalCount} done</span>
+        </div>
+        <div className="progress-bar">
+          <div className="progress-fill" style={{ width: percent + "%" }}></div>
+        </div>
+      </div>
+
+      {/* input section */}
+      <div className="input-area">
+        <input
+          className="task-input"
+          type="text"
+          placeholder="Add a new task..."
+          value={inputVal}
+          onChange={(e) => {
+            setInputVal(e.target.value);
+            if (errMsg) setErrMsg(""); // clear error when typing
+          }}
+          onKeyDown={handleKeyDown}
+        />
+        <button className="btn-primary" onClick={handleAdd}>+</button>
+      </div>
+
+      {/* error message */}
+      {errMsg && <p className="error-msg">{errMsg}</p>}
+
+      {/* filter buttons + clear all */}
+      <div className="filter-row">
+        <div className="filters">
+          <button
+            className={filter === "all" ? "filter-btn active" : "filter-btn"}
+            onClick={() => setFilter("all")}
+          >All</button>
+          <button
+            className={filter === "active" ? "filter-btn active" : "filter-btn"}
+            onClick={() => setFilter("active")}
+          >Active</button>
+          <button
+            className={filter === "completed" ? "filter-btn active" : "filter-btn"}
+            onClick={() => setFilter("completed")}
+          >Completed</button>
+        </div>
+
+        {tasks.length > 0 && (
+          <button className="btn-clear" onClick={handleClearAll}>Clear All</button>
+        )}
+      </div>
+
+      {/* task list */}
+      {filteredTasks.length === 0 ? (
+        <p className="empty-msg">No tasks here.</p>
+      ) : (
+        filteredTasks.map(task => (
+          <TaskCard
+            key={task.id}
+            task={task}
+            onToggle={handleToggle}
+            onDelete={handleDelete}
+            onSaveEdit={handleSaveEdit}
+          />
+        ))
+      )}
+
+      <p className="app-footer">&copy; 2025 To-Do App &nbsp;|&nbsp; MCA Project</p>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+
+</script>
+</body>
+</html>
